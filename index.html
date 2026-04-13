@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KindnessEngine | Professional Compliment Generator</title>
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@1,500;1,600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- DESIGN TOKENS --- */
+        :root {
+            --bg-deep: #0F172A;
+            --surface: #1E293B;
+            --primary: #2DD4BF;
+            --accent: #818CF8;
+            --text-main: #F8FAFC;
+            --text-muted: #94A3B8;
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* --- RESET & BASE --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+        /* --- DECORATIVE BACKGROUND ELEMENTS --- */
+        .blur-blob {
+            position: fixed;
+            width: 40vw;
+            height: 40vw;
+            background: radial-gradient(circle, rgba(45, 212, 191, 0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(80px);
+        }
+        .blob-1 { top: -10%; left: -10%; }
+        .blob-2 { bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(129, 140, 248, 0.05) 0%, transparent 70%); }
+
+        /* --- LAYOUT --- */
+        .container {
+            width: 100%;
+            max-width: 680px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .logo {
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: var(--primary);
+            text-transform: uppercase;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 500;
+            letter-spacing: -0.03em;
+            color: var(--text-main);
+        }
+
+        /* --- MAIN CARD (Glassmorphism) --- */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(12px);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+            min-height: 400px;
+        }
+
+        /* --- CATEGORY SELECTOR --- */
+        .category-nav {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .cat-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            color: var(--text-muted);
+            padding: 0.6rem 1.25rem;
+            border-radius: 100px;
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .cat-btn:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .cat-btn.active {
+            background: var(--primary);
+            color: var(--bg-deep);
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(45, 212, 191, 0.3);
+        }
+
+        /* --- DISPLAY AREA --- */
+        .display-area {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+        }
+
+        #compliment-text {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 2.25rem;
+            line-height: 1.3;
+            color: var(--text-main);
+            opacity: 1;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        #compliment-text.fade-out {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        /* --- ACTIONS --- */
+        .actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+        }
+
+        .btn-generate {
+            flex-grow: 1;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 1.25rem 2rem;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .btn-generate:hover {
+            transform: scale(1.02);
+            filter: brightness(1.1);
+            box-shadow: 0 10px 25px -5px rgba(129, 140, 248, 0.4);
+        }
+
+        .btn-generate:active {
+            transform: scale(0.98);
+        }
+
+        .btn-icon-only {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            color: var(--text-muted);
+            position: relative;
+        }
+
+        .btn-icon-only:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+        }
+
+        /* --- TOAST NOTIFICATION --- */
+        .toast {
+            position: absolute;
+            bottom: -60px;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background: var(--primary);
+            color: var(--bg-deep);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            opacity: 0;
+            pointer-events: none;
+            transition: var(--transition-smooth);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 640px) {
+            h1 { font-size: 1.8rem; }
+            .card { padding: 2rem; min-height: 450px; }
+            #compliment-text { font-size: 1.75rem; }
+            .actions { flex-direction: column-reverse; }
+            .btn-generate { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="blur-blob blob-1"></div>
+    <div class="blur-blob blob-2"></div>
+
+    <main class="container">
+        <header>
+            <span class="logo">KindnessEngine v2.0</span>
+            <h1>Radiate positivity.</h1>
+        </header>
+
+        <section class="card">
+            <nav class="category-nav" id="category-container">
+                <button class="cat-btn active" data-category="professional">Professional</button>
+                <button class="cat-btn" data-category="heartfelt">Heartfelt</button>
+                <button class="cat-btn" data-category="silly">Silly</button>
+            </nav>
+
+            <div class="display-area">
+                <p id="compliment-text">Click below to start your day with a spark.</p>
+            </div>
+
+            <div class="actions">
+                <button class="btn-icon-only" id="copy-btn" title="Copy to clipboard">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                    <span class="toast" id="copy-toast">Copied!</span>
+                </button>
+                
+                <button class="btn-generate" id="generate-btn">
+                    Generate Compliment
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        /**
+         * KINDNESS ENGINE - CORE LOGIC
+         * Organized into logical modules for data, state, and UI.
+         */
+
+        // 1. DATA REPOSITORY (Expanded to 102 Items)
+        const COMPLIMENT_DATA = {
+            professional: [
+                "Your attention to detail makes every project feel world-class.",
+                "You have a remarkable ability to simplify complex problems into elegant solutions.",
+                "The way you handle pressure is an inspiration to the entire team.",
+                "Your creative vision is exactly what this industry needs more of.",
+                "You don't just complete tasks; you elevate the standard for everyone else.",
+                "Your leadership style empowers others to do their absolute best work.",
+                "Your strategic mindset consistently anticipates and solves future challenges.",
+                "You bring a collaborative spirit that turns every meeting into a breakthrough.",
+                "Your technical prowess is matched only by your willingness to mentor others.",
+                "You have an incredible knack for seeing the big picture without missing a pixel.",
+                "Your adaptability in fast-paced environments is truly impressive.",
+                "You possess a rare talent for articulate and persuasive communication.",
+                "Your dedication to quality is evident in everything you produce.",
+                "You have a refreshingly innovative approach to traditional workflows.",
+                "You are as reliable as clockwork, even on the most demanding days.",
+                "Your poise in high-stakes situations sets a calming tone for the project.",
+                "You have a resourcefulness that turns constraints into creative opportunities.",
+                "Your growth-oriented attitude makes you a vital asset to any organization.",
+                "You maintain an exceptional level of professional integrity in all your dealings.",
+                "Your emotional intelligence allows you to navigate team dynamics flawlessly.",
+                "You have a gift for maximizing efficiency without sacrificing human connection.",
+                "Your focus on impact ensures that every effort moves the needle forward.",
+                "You possess a curious mind that is always hunting for a better way to work.",
+                "Your presentation skills make even the densest data feel compelling.",
+                "Your work ethic is an engine that drives everyone around you to improve.",
+                "You have an organizational system that should be studied in textbooks.",
+                "Your constructive feedback is always delivered with kindness and clarity.",
+                "Your punctuality and preparedness demonstrate deep respect for your peers.",
+                "You are a master of big-picture thinking and tactical execution.",
+                "Your problem-solving instincts are some of the sharpest I have ever seen.",
+                "You take the initiative in a way that feels natural and deeply effective.",
+                "Your ability to boost team morale is just as valuable as your technical skills.",
+                "Your discipline is the foundation of your consistent excellence.",
+                "You bring a unique perspective that challenges the status quo for the better."
+            ],
+            heartfelt: [
+                "The world is genuinely a brighter place because you are in it.",
+                "You have a kindness that radiates even when you aren't trying.",
+                "Your empathy is a superpower that heals those around you.",
+                "You are the kind of person people feel safe and heard around.",
+                "The resilience you show is quiet but incredibly powerful.",
+                "You deserve every ounce of the happiness you give to others.",
+                "Your genuine presence makes even the simplest moments feel significant.",
+                "You live with an authenticity that inspires everyone to be themselves.",
+                "Your generous spirit is a constant reminder of the good in humanity.",
+                "You have a patient heart that knows exactly how to wait for beauty.",
+                "Your loyalty as a friend is a rare and precious treasure.",
+                "You have a warm energy that makes strangers feel like old friends.",
+                "You handle life's challenges with a grace that is beautiful to witness.",
+                "Your understanding nature is a refuge for those going through hard times.",
+                "You provide encouragement exactly when people need it most.",
+                "Your brave heart faces the unknown with a quiet, steady resolve.",
+                "You have a sincere soul that is visible in your every action.",
+                "Your thoughtfulness shines through in the smallest, most caring gestures.",
+                "You are a gift to every person lucky enough to know you.",
+                "Your inner strength is far more powerful than you give yourself credit for.",
+                "You are a natural optimist who finds light in the darkest corners.",
+                "Your light is so bright it helps others find their own path.",
+                "You are one of the most trustworthy people I have ever met.",
+                "The beauty you carry inside is reflected in the way you treat the world.",
+                "You have changed more lives for the better than you will ever realize.",
+                "You have a soul of gold and a heart that beats for the good of all.",
+                "Your calming presence is the perfect antidote to a chaotic day.",
+                "Your infectious joy is a reminder that life is meant to be enjoyed.",
+                "You are humble about your greatness, which makes you even greater.",
+                "Your compassion is a bridge that connects people across any distance.",
+                "You are a true original in a world full of imitations.",
+                "You have the heart of a lion and the gentleness of a summer breeze.",
+                "You are a silver-lining finder in a world that often sees only clouds.",
+                "Your support is an anchor that keeps people steady in any storm."
+            ],
+            silly: [
+                "If you were a vegetable, you'd be a 'cute-cumber'.",
+                "You're the person I'd trust most to survive a zombie apocalypse with.",
+                "Your laugh is the best soundtrack I've heard all year.",
+                "You are more fun than a ball pit full of golden retriever puppies.",
+                "If you were a candle, your scent would be named 'Pure Sunshine'.",
+                "You have the energy of a perfectly timed high-five.",
+                "You're like the extra fry at the bottom of the bag—an unexpected delight.",
+                "If you were a rainbow, you'd be a double one. In HD.",
+                "You are the human equivalent of a 'Software Update' that actually works.",
+                "Your vibe is so chill, even a capybara would be jealous.",
+                "You're rarer than a unicorn eating a four-leaf clover.",
+                "On a scale of 1 to 10, you're an 11. Maybe a 12 on Fridays.",
+                "You are as satisfying as popping a perfectly sized sheet of bubble wrap.",
+                "You feel like a fresh pair of socks straight out of the dryer.",
+                "If you were a breakfast cereal, you'd be the kind with all the marshmallows.",
+                "You're like the cool side of the pillow on a hot summer night.",
+                "You have more sparkle than a disco ball at a glitter convention.",
+                "You're the toaster strudel icing of the human race.",
+                "You are genuinely better than sliced bread. And artisanal sourdough.",
+                "You are such a smart cookie, you're practically a double-chunk chocolate chip.",
+                "You are 'one in a melon' and I'm not just saying that for the pun.",
+                "I hope you know you're doing a 'grape' job at life.",
+                "You are absolutely dino-mite. T-Rex approved.",
+                "Spending time with you is always 'tea-riffic'.",
+                "You are an 'egg-cellent' person, no yolk about it.",
+                "You are 'berry' special to everyone who knows you.",
+                "You are 'whale-y' good at being yourself.",
+                "I 'owl-ways' have a better day when I talk to you.",
+                "You are 'beary' sweet and impossible to stay mad at.",
+                "Your personality is 'paws-itively' amazing.",
+                "You are a 'koala-ty' person in every sense of the word.",
+                "Let's 'taco' bout how great you are for a minute.",
+                "You are a total 'souper' star.",
+                "I 'donut' know what I'd do without your awesome energy."
+            ]
+        };
+
+        // 2. STATE MANAGEMENT
+        const state = {
+            currentCategory: 'professional',
+            lastCompliment: null,
+            isAnimating: false
+        };
+
+        // 3. CORE UTILITIES (Logic)
+        const Logic = {
+            getRandomItem: (category) => {
+                const options = COMPLIMENT_DATA[category];
+                let newItem;
+                
+                // Logic check: prevent same compliment twice in a row
+                do {
+                    newItem = options[Math.floor(Math.random() * options.length)];
+                } while (newItem === state.lastCompliment && options.length > 1);
+                
+                state.lastCompliment = newItem;
+                return newItem;
+            },
+
+            copyToClipboard: (text) => {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                } catch (err) {
+                    console.error('Copy fallback failed', err);
+                }
+                document.body.removeChild(textArea);
+            }
+        };
+
+        // 4. UI CONTROLLER (DOM Manipulation)
+        const UI = {
+            textElement: document.getElementById('compliment-text'),
+            generateBtn: document.getElementById('generate-btn'),
+            copyBtn: document.getElementById('copy-btn'),
+            categoryContainer: document.getElementById('category-container'),
+            toast: document.getElementById('copy-toast'),
+
+            updateCompliment: (text) => {
+                if (state.isAnimating) return;
+                state.isAnimating = true;
+
+                // CSS Transition logic
+                UI.textElement.classList.add('fade-out');
+
+                setTimeout(() => {
+                    UI.textElement.innerText = text;
+                    UI.textElement.classList.remove('fade-out');
+                    state.isAnimating = false;
+                }, 300);
+            },
+
+            setActiveCategory: (category, clickedElement) => {
+                state.currentCategory = category;
+                
+                // Update buttons
+                const buttons = UI.categoryContainer.querySelectorAll('.cat-btn');
+                buttons.forEach(btn => btn.classList.remove('active'));
+                clickedElement.classList.add('active');
+            },
+
+            showToast: () => {
+                UI.toast.classList.add('show');
+                setTimeout(() => {
+                    UI.toast.classList.remove('show');
+                }, 2000);
+            }
+        };
+
+        // 5. INITIALIZATION & EVENT BINDING
+        const init = () => {
+            // Generate listener
+            UI.generateBtn.addEventListener('click', () => {
+                const text = Logic.getRandomItem(state.currentCategory);
+                UI.updateCompliment(text);
+            });
+
+            // Category listener (Event Delegation)
+            UI.categoryContainer.addEventListener('click', (e) => {
+                const btn = e.target.closest('.cat-btn');
+                if (!btn) return;
+
+                const category = btn.dataset.category;
+                UI.setActiveCategory(category, btn);
+            });
+
+            // Copy listener
+            UI.copyBtn.addEventListener('click', () => {
+                const text = UI.textElement.innerText;
+                if (text.includes("Click below")) return;
+                
+                Logic.copyToClipboard(text);
+                UI.showToast();
+            });
+        };
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
